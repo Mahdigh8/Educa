@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load cache %}
+{% block title %}
+	{{ object.title }}
+{% endblock %}
+{% block content %}
+	<h1>
+		{{ object.title }}
+	</h1>
+	<div class="contents">
+		<h3>Modules</h3>
+		<ul id="modules">
+			{% for m in object.modules.all %}
+				<li data-id="{{ m.id }}" id="module{{m.id}}" {% if m == module %}
+					class="mod selected"{% else %}class="mod"{%endif%}>
+						<span>
+							Module <span class="order">{{ m.order|add:1}}</span>
+						</span>
+						<br>
+						{{ m.title }}
+				</li>
+			{% empty %}
+				<li>No modules yet.</li>
+			{% endfor %}
+		</ul>
+	</div>
+	<div class="module" id="module_list">
+		{% include 'students/course/list_ajax.html'%}
+	</div>
+
+{% endblock %}
+
+{% block domready %}
+	$(".mod").click(function(){
+		var module_id = $(this).data('id');
+		$.get('?module=' + $(this).data('id'),
+			function(data) {
+					$('#module_list').empty();
+					$('#module_list').append(data);
+					$('.selected').removeClass("selected");
+					$('#module'+module_id).addClass("selected");
+			}
+		);
+	});
+
+{% endblock %}

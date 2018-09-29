@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+{% load thumbnail %}
+{% block title %}
+	Profile
+{% endblock %}
+{% block content %}
+<div class="d-flex flex-row" style="margin-top: 20px;">
+	<br/>
+	<div class="col-lg-7 text-left">
+  	<div class="card">
+    	<div class="d-flex card-header h3">Courses you have Enrolled<a href="{%url 'students:student_course_list'%}" class="btn btn-success ml-auto">Enter to your courses</a></div>
+	  	<div class="card-body">
+	  	{%for course in courses_enrolled%}
+		<div class="accordion" id="acor{{course.id}}">
+		  <div class="card">
+		    <div class="card-header" id="e{{course.id}}">
+		      <h5 class="d-flex mb-0">
+		        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#et{{course.id}}" aria-expanded="true" aria-controls="e{{course.id}}">
+		          {{course.title}}
+		        </button>
+		        <button type="button" class="delete btn btn-info ml-auto" data-id="{{course.id}}">Unroll</button>
+		      </h5>
+		    </div>
+
+		    <div id="et{{course.id}}" class="collapse" aria-labelledby="e{{course.id}}" data-parent="#acor{{course.id}}">
+		      <div class="card-body">
+		       	<ul class="list-group">
+			      	{%for module in course.modules.all%}
+					  <li class="list-group-item">
+					  	{{module.title}}
+					  </li>
+					{%endfor%}
+				</ul>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+		{% empty %}
+		  	You have not enroll in any courses
+		{%endfor%}
+	  	</div>
+ 	</div>
+ </div>
+
+		<div class="col-lg-5 text-center">
+			<div class="card">
+				<div class="card-body">
+				{% if object.photo %}
+					{% thumbnail object.photo "180x180" crop="100%" as im %}
+					<img src="{{ im.url }}" class="card-img-top text-center rounded-circle" style="width: 200px; height: 200px;">
+					{%endthumbnail%}
+				{% else %}
+					<img src="{% static 'img/profile.png' %}" class="card-img-top text-center rounded-circle" style="width: 200px; height: 200px;">
+				{% endif %}
+				<br/>
+				<br/>
+		                  <h5 class="card-title">Your Profile <small><a href="{{object.get_absolute_url_edit}}">edit</a></small></h5>
+		                  <p class="card-text"><img src="{% static 'iconic/svg/person.svg' %}" style="width: 15px; height: 15px;" alt="icon name"> Fullname: {{object.user.get_full_name}}</p>
+		                  <p class="card-text"><img src="{% static 'iconic/svg/home.svg' %}" style="width: 15px; height: 15px;" alt="icon name"> Username: {{object.user.username}}</p>
+		                  <p class="card-text"><img src="{% static 'iconic/svg/calendar.svg' %}" style="width: 15px; height: 15px;" alt="icon name">Date of birth: {{object.date_of_birth}}</p>
+		        </div>
+	        </div>
+		</div>
+	</div>
+{% endblock %}
+
+{%block domready%}
+ $(".delete").click(function(){
+	$.ajax({
+		type: 'POST',
+		url: '{%url "students:student_unroll_course"%}',
+		contentType: 'application/json; charset=utf-8',
+		dataType: 'json',
+		data: JSON.stringify({
+        	'id':$(this).data('id')
+    	}),
+    	success: function(data){
+    		$("#acor"+data.id).fadeOut();
+    	},
+	});
+});
+{%endblock%}

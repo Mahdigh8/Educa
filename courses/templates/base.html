@@ -1,0 +1,42 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>{% block title %}Educa{% endblock %}</title>
+		<link href="{% static 'css/base.css' %}" rel="stylesheet">
+		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+	</head>
+	<body style="background-color:  #e3e9ed">
+		<div id="header" class="sticky-top">
+			<a href="/" class="logo">Educa</a>
+			<ul class="menu">
+				{% with user=request.user %}
+					<div class="d-flex justify-content-end">
+						{% if user.is_authenticated %}
+							<li><a href="{{user.profile.get_absolute_url}}"><img src="{%if user.profile.photo %}{{ user.profile.photo.url }}{% else %}{% static 'img/profile.png' %}{%endif%}" class="rounded-circle" style="width: 40px; height: 40px;" ></a></li>
+							<li class="align-self-center ml-2"><a href="{% url "logout" %}">Sign out</a></li>
+						{% else %}
+							<li class="mr-2"><a href="{% url 'students:student_registration' %}">Sign up</a></li>|
+							<li class="ml-2"><a href="{% url "login" %}">Sign in</a></li>
+						{% endif %}
+					</div>
+				{% endwith %}
+			</ul>
+		</div>
+		<div id="content" class="container-fluid">
+			{% block content %}
+			{% endblock %}
+		</div>
+		<script src="{% static 'js/jquery.js' %}"></script>
+		<script src="{% static 'js/popper.js' %}"></script>
+		<script src="{% static 'js/bootstrap.min.js' %}"></script>
+		<script src="{% static 'js/jquery-ui.min.js' %}"></script>
+		<script>
+			$(document).ready(function() {
+			{% block domready %}
+			{% endblock %}
+			});
+		</script>
+	</body>
+</html>
