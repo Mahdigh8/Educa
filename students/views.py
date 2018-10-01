@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -12,13 +12,13 @@ from django.views.generic.edit import CreateView, FormView
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 from courses.models import Course
 from .models import ModuleContinue
-from .forms import CourseEnrollForm
+from .forms import CourseEnrollForm, UserCreationForm
 
 
 class StudentRegistrationView(CreateView):
 	template_name = 'students/student/registration.html'
 	form_class = UserCreationForm
-	success_url = reverse_lazy('students:student_course_list')
+	success_url = reverse_lazy('course_list')
 	
 	def form_valid(self, form):
 		result = super(StudentRegistrationView, self).form_valid(form)
