@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'memcache_status',
     'rest_framework',
     'sorl.thumbnail',
-    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -159,5 +158,7 @@ REST_FRAMEWORK = {
 }
 
 
-# Django crispy forms
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+#Email
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
