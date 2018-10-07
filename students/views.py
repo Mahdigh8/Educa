@@ -1,3 +1,5 @@
+import redis
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponse
@@ -11,9 +13,13 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 from courses.models import Course
-from .models import ModuleContinue
 from .forms import CourseEnrollForm, UserCreationForm
 
+
+# connect to redis
+r = redis.StrictRedis(host=settings.REDIS_HOST,
+						port=settings.REDIS_PORT,
+						db=settings.REDIS_DB)
 
 class StudentRegistrationView(CreateView):
 	template_name = 'students/student/registration.html'
@@ -35,7 +41,6 @@ class StudentEnrollCourseView(LoginRequiredMixin, FormView):
 	def form_valid(self, form):
 		self.course = form.cleaned_data['course']
 		self.course.students.add(self.request.user)
-		ModuleContinue.objects.get_or_create(student=self.request.user, course=self.course.id)
 		return super(StudentEnrollCourseView, self).form_valid(form)
 
 	def get_success_url(self):
@@ -48,8 +53,7 @@ class DeleteEnrollCourseView(CsrfExemptMixin, JsonRequestResponseMixin, LoginReq
 		for key, id in self.request_json.items():
 			course = get_object_or_404(Course, id=id)
 			course.students.remove(self.request.user)
-			module_continue = get_object_or_404(ModuleContinue, student=request.user, course=id)
-			module_continue.delete()
+			r.delete('{}_{}'.format(request.user.username ,course.id))
 		data = {'saved': True, 'id': id}
 		return self.render_json_response(data)
 
@@ -72,14 +76,12 @@ def course_content_list(request, pk):
 	try:
 		module = course.modules.get(id=module_id)
 		# saving module id for continue that course later
-		obj = request.user.courses_countinue.get(course=course.id)
-		obj.module = module_id
-		obj.save()
+		r.set('{}_{}'.format(request.user.username ,course.id), module_id)
 	except:
 		# if there is a module id for this user and this course we continue this module
-		module_id = request.user.courses_countinue.get(course=course.id).module
+		module_id = r.get('{}_{}'.format(request.user.username ,course.id))
 		if module_id!=None:
-			module = course.modules.get(id=module_id)
+			module = course.modules.get(id=int(module_id))
 		else:
 			module = course.modules.all()[0]
 
